@@ -1,0 +1,125 @@
+name: stellarium-daily # you probably want to 'snapcraft register <name>'
+base: core18
+adopt-info: stellarium
+grade: stable # must be 'stable' to release into candidate/stable channels
+confinement: strict
+
+architectures: #build Architectures
+   - build-on: i386
+
+apps:
+  stellarium:
+    command: desktop-launch $SNAP/usr/bin/stellarium
+    common-id: org.stellarium.Stellarium
+    plugs: [desktop, wayland, x11, unity7, gsettings, opengl, network, network-bind, audio-playback, home, raw-usb]
+    environment:
+      HOME: "$SNAP_USER_COMMON"
+      #DISABLE_WAYLAND: 1
+      __EGL_VENDOR_LIBRARY_DIRS: $SNAP/usr/share/glvnd/egl_vendor.d
+      "QT_PLUGIN_PATH": $"QT_PLUGIN_PATH:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/qt5/plugins/"
+      "QTWEBENGINEPROCESS_PATH": $"QTWEBENGINEPROCESS_PATH:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/qt5/libexec/"
+ 
+layout:
+  /usr/share/qt5:
+    bind: $SNAP/usr/share/qt5
+
+parts:
+  stellarium:
+    plugin: cmake
+    configflags:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DCMAKE_INSTALL_PREFIX:PATH=/usr
+    source: https://github.com/Stellarium/stellarium.git
+    source-type: git
+    source-depth : 1
+    source-tag: v0.20.3
+    parse-info: [usr/share/metainfo/org.stellarium.Stellarium.appdata.xml] #appstream info
+    after: [desktop-stellarium]
+
+      
+    build-packages:
+      - build-essential
+      - doxygen
+      - gettext
+      - libqt5multimedia5-plugins
+      - libqt5positioning5
+      - libqt5positioning5-plugins
+      - libqt5svg5-dev
+      - libqt5opengl5-dev
+      - libqt5serialport5-dev
+      - qtwebengine5-dev
+      - mesa-common-dev
+      - qtbase5-dev
+      - qtdeclarative5-dev
+      - qtdeclarative5-dev-tools
+      - qtscript5-dev
+      - qttools5-dev
+      - qttools5-dev-tools
+      - qtmultimedia5-dev
+      - qtpositioning5-dev
+      - zlib1g-dev
+    stage-packages:
+      - libasyncns0
+      - libflac8
+      - gtk3-nocsd
+      - libogg0
+      - libqt5multimedia5
+      - libqt5multimediawidgets5
+      - libqt5opengl5
+      - libqt5positioning5
+      - libqt5printsupport5
+      - libqt5script5
+      - libqt5serialport5
+      - libsndfile1
+      - libvorbis0a
+      - libvorbisenc2
+      - libpulse0
+      - libqt5webenginewidgets5
+      - libqt5webenginecore5
+      - libqt5webengine5
+      - libqt5webengine-data
+   
+  desktop-stellarium:
+    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
+    source-subdir: qt
+    source-depth : 1
+    plugin: make
+    make-parameters: ["FLAVOR=qt5"]
+    build-packages:
+    - build-essential
+    - qtbase5-dev
+    - dpkg-dev
+    stage-packages:
+    - libxkbcommon0
+    - ttf-ubuntu-font-family
+    - dmz-cursor-theme
+    - light-themes
+    - adwaita-icon-theme
+    - gnome-themes-standard
+    - shared-mime-info
+    - libqt5gui5
+    - libgdk-pixbuf2.0-0
+    - libqt5svg5 # for loading icon themes which are svg
+    - try: [appmenu-qt5] # not available on core18
+    - locales-all
+    - xdg-user-dirs
+    - fcitx-frontend-qt5
+    - libgtk2.0-0
+    
+  qt5-gtk-platform:
+    plugin: nil
+    stage-packages:
+      - qt5-gtk-platformtheme
+
+plugs:
+  # Support for common GTK themes
+  # https://forum.snapcraft.io/t/how-to-use-the-system-gtk-theme-via-the-gtk-common-themes-snap/6235
+  gsettings:
+  gtk-3-themes:
+    interface: content
+    target: $SNAP/data-dir/themes
+    default-provider: gtk-common-themes
+  icon-themes:
+    interface: content
+    target: $SNAP/data-dir/icons
+    default-provider: gtk-common-themes
