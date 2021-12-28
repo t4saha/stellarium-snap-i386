@@ -33,7 +33,7 @@ parts:
     source-type: git
     source-depth : 1
     source-tag: v0.21.3
-    parse-info: [usr/share/metainfo/stellarium.appdata.xml] #appstream info
+    parse-info: [usr/share/metainfo/org.stellarium.Stellarium.appdata.xml] #appstream info
     after: [desktop-stellarium]
 
       
